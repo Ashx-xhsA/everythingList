@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "giant-celestial",
-    "slug": "giant-celestial",
+    "name": "everythingHere",
+    "slug": "everythinghere",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1c2447f8-feeb-4dd5-8eb3-5128f7b1ec05"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1c2447f8-feeb-4dd5-8eb3-5128f7b1ec05"
     }
   }
 }

@@ -1,20 +1,33 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-get-random-values';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
+import { TaskProvider } from './src/context/TaskContext';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { LogPage } from './src/screens/LogPage';
+import { SettingsScreen } from './src/screens/SettingsScreen';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <TaskProvider>
+      <NavigationContainer>
+        <Stack.Navigator 
+          screenOptions={{ 
+            headerShown: false,
+            cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
+            transitionSpec: {
+              open: { animation: 'timing', config: { duration: 300 } },
+              close: { animation: 'timing', config: { duration: 300 } },
+            }
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Log" component={LogPage} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </TaskProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
