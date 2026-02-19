@@ -57,7 +57,7 @@ autofocus-app/
 ## Getting Started
 
 ```bash
-git clone https://github.com/[username]/autofocus-app.git
+git clone https://github.com/Ashx-xhsA/autofocus-app.git
 cd autofocus-app
 npm install
 npx expo start
