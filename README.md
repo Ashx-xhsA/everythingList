@@ -1,4 +1,4 @@
-# Autofocus
+# everythingList
 
 A gesture-driven task manager for iOS built on Mark Forster's Autofocus productivity method.
 
@@ -13,7 +13,7 @@ A gesture-driven task manager for iOS built on Mark Forster's Autofocus producti
 
 The [Autofocus method](http://markforster.squarespace.com/autofocus-system/) is a time management system created by Mark Forster. It replaces rigid prioritization with intuitive selection: you write tasks into a ruled notebook, scan through one page at a time, and act on whichever task "stands out" to you. If you pass through an entire page without anything catching your attention, every remaining item on that page is dismissed. The system balances rational planning with gut instinct — and in practice, it eliminates most of the friction that causes procrastination.
 
-I've been using this method with pen and paper for a while, but no existing app captured its core mechanics correctly. Most task managers treat dismiss/delete as failure states, whereas in Autofocus, dismissal is a feature — it's how the system filters out what doesn't matter. So I built this app to bring the full method to my phone, including the page-based structure, the dismiss mechanic, and the cyclical review loop.
+I've been using this method with pen and paper for a while, but no existing app captured its core mechanics correctly. Most task managers treat dismiss/delete as failure states, whereas in the Autofocus method, dismissal is a feature — it's how the system filters out what doesn't matter. So I built everythingList to bring the full method to my phone, including the page-based structure, the dismiss mechanic, and the cyclical review loop.
 
 ## Key Features
 
@@ -37,7 +37,7 @@ I've been using this method with pen and paper for a while, but no existing app 
 ## Project Structure
 
 ```
-autofocus-app/
+everythingList/
 ├── App.tsx                        # Root component
 ├── src/
 │   ├── types.ts                   # Task type definitions
@@ -57,8 +57,8 @@ autofocus-app/
 ## Getting Started
 
 ```bash
-git clone https://github.com/Ashx-xhsA/autofocus-app.git
-cd autofocus-app
+git clone https://github.com/Ashx-xhsA/everythingList.git
+cd everythingList
 npm install
 npx expo start
 ```
