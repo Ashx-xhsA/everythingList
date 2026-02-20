@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Task } from 'shared';
-import { completeTaskState, dismissPageTasks, getSuggestions, checkDismissedWarning } from 'shared';
+import type { Task, Settings } from 'shared';
+import { completeTaskState, dismissPageTasks, getSuggestions, checkDismissedWarning, signInAnon, subscribeToTasks, syncTaskToFirestore, syncTasksToFirestore, deleteTaskFromFirestore, subscribeToSettings, syncSettingsToFirestore } from 'shared';
 
 const DEFAULT_PAGE_SIZE = 5;
 const DEFAULT_FONT_SIZE = 18;
@@ -29,17 +29,13 @@ interface TaskContextType {
   isPageFull: (pageIndex: number) => boolean;
   resetData: () => void;
   exportData: () => void;
-  importData: (jsonData: {
-    tasks?: Task[];
-    settings?: { pageSize?: number; fontSize?: number };
-    pageCapacities?: Record<number, number>;
-    closedPages?: number[];
-  }) => void;
+  importData: (jsonData: any) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userId, setUserId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [pageSize, setPageSizeState] = useState(DEFAULT_PAGE_SIZE);
@@ -52,67 +48,54 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const maxPageIndex = tasks.length > 0 ? Math.max(...tasks.map(t => t.pageIndex)) : 0;
 
   useEffect(() => {
-    loadTasks();
+    let unsubscribeTasks: () => void;
+    let unsubscribeSettings: () => void;
+
+    signInAnon().then((user) => {
+      setUserId(user.uid);
+      
+      const storedPageIndex = localStorage.getItem('currentPageIndex');
+      if (storedPageIndex) setCurrentPageIndex(parseInt(storedPageIndex, 10));
+
+      unsubscribeTasks = subscribeToTasks(user.uid, (fetchedTasks) => {
+        setTasks(fetchedTasks);
+        setIsLoading(false);
+      });
+
+      unsubscribeSettings = subscribeToSettings(user.uid, (settings) => {
+        if (settings) {
+          if (settings.pageSize) setPageSizeState(settings.pageSize);
+          if (settings.fontSize) setFontSizeState(settings.fontSize);
+          if (settings.pageCapacities) setPageCapacities(settings.pageCapacities);
+          if (settings.closedPages) setClosedPages(settings.closedPages);
+        }
+      });
+    }).catch(err => {
+      console.error("Failed to sign in anonymously", err);
+      setIsLoading(false);
+    });
+
+    return () => {
+      if (unsubscribeTasks) unsubscribeTasks();
+      if (unsubscribeSettings) unsubscribeSettings();
+    };
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--font-content-size', `${fontSize}px`);
   }, [fontSize]);
 
-  const saveTasks = React.useCallback(() => {
-    if (isLoading) return;
-    try {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-      localStorage.setItem('currentPageIndex', currentPageIndex.toString());
-      localStorage.setItem('pageSize', pageSize.toString());
-      localStorage.setItem('fontSize', fontSize.toString());
-      localStorage.setItem('pageCapacities', JSON.stringify(pageCapacities));
-      localStorage.setItem('closedPages', JSON.stringify(closedPages));
-    } catch (e) {
-      console.error("Failed to save tasks", e);
-    }
-  }, [isLoading, tasks, currentPageIndex, pageSize, fontSize, pageCapacities, closedPages]);
-
   useEffect(() => {
-    saveTasks();
-  }, [saveTasks]);
+    localStorage.setItem('currentPageIndex', currentPageIndex.toString());
+  }, [currentPageIndex]);
 
-  const loadTasks = () => {
-    try {
-      const storedTasks = localStorage.getItem('tasks');
-      const storedPageIndex = localStorage.getItem('currentPageIndex');
-      const storedPageSize = localStorage.getItem('pageSize');
-      const storedFontSize = localStorage.getItem('fontSize');
-      const storedCapacities = localStorage.getItem('pageCapacities');
-      const storedClosedPages = localStorage.getItem('closedPages');
-
-      let parsedTasks: Task[] = [];
-      if (storedTasks) {
-        parsedTasks = JSON.parse(storedTasks);
-        setTasks(parsedTasks);
-      }
-      
-      if (storedPageIndex) setCurrentPageIndex(parseInt(storedPageIndex, 10));
-      if (storedPageSize) setPageSizeState(parseInt(storedPageSize, 10));
-      if (storedFontSize) setFontSizeState(parseInt(storedFontSize, 10));
-      if (storedCapacities) setPageCapacities(JSON.parse(storedCapacities));
-      if (storedClosedPages) setClosedPages(JSON.parse(storedClosedPages));
-
-      if (parsedTasks.length > 0 && (!storedCapacities || Object.keys(JSON.parse(storedCapacities)).length === 0)) {
-          const distinctPages = Array.from(new Set(parsedTasks.map(t => t.pageIndex)));
-          const migrationCaps: Record<number, number> = {};
-          distinctPages.forEach(p => {
-              migrationCaps[p] = 5;
-          });
-          setPageCapacities(migrationCaps);
-      }
-    } catch (e) {
-      console.error("Failed to load tasks", e);
-    } finally {
-      setIsLoading(false);
-    }
+  const syncSettings = (updates: Partial<Settings>) => {
+    if (!userId) return;
+    const newSettings = {
+      pageSize, fontSize, pageCapacities, closedPages, updatedAt: Date.now(), ...updates
+    };
+    syncSettingsToFirestore(userId, newSettings);
   };
-
 
   const isPageFull = (pageIndex: number) => {
     const count = tasks.filter(t => t.pageIndex === pageIndex).length;
@@ -144,9 +127,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setTasks(prev => [...prev, newTask]);
+    if (userId) syncTaskToFirestore(userId, newTask);
     
     if (targetPageIndex > maxPageIndex || !pageCapacities[targetPageIndex]) {
-      setPageCapacities(prev => ({ ...prev, [targetPageIndex]: pageSize }));
+      const newPageCapacities = { ...pageCapacities, [targetPageIndex]: pageSize };
+      setPageCapacities(newPageCapacities);
+      syncSettings({ pageCapacities: newPageCapacities });
     }
     
     if (targetPageIndex !== currentPageIndex) {
@@ -157,20 +143,32 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates, updatedAt: Date.now() } : t));
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, ...updates, updatedAt: Date.now() } : t);
+    setTasks(updatedTasks);
+    const changedTask = updatedTasks.find(t => t.id === id);
+    if (userId && changedTask) syncTaskToFirestore(userId, changedTask);
   };
 
   const deleteTask = (id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
+    if (userId) deleteTaskFromFirestore(userId, id);
   };
 
   const completeTask = (id: string) => {
     setActionTakenOnCurrentPage(true);
-    setTasks(prev => completeTaskState(id, prev));
+    const newTasks = completeTaskState(id, tasks);
+    setTasks(newTasks);
+    const changedTask = newTasks.find(t => t.id === id);
+    if (userId && changedTask) syncTaskToFirestore(userId, changedTask);
   };
 
   const firePage = (pageIndex: number) => {
-    setTasks(prev => dismissPageTasks(pageIndex, prev));
+    const newTasks = dismissPageTasks(pageIndex, tasks);
+    setTasks(newTasks);
+    if (userId) {
+      const dismissed = newTasks.filter(t => t.pageIndex === pageIndex && t.status === 'dismissed');
+      syncTasksToFirestore(userId, dismissed);
+    }
   };
 
   const markActionTaken = () => setActionTakenOnCurrentPage(true);
@@ -178,8 +176,14 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const nextPage = () => {
     const isLastPage = currentPageIndex === maxPageIndex;
     
+    let newTasks = tasks;
     if (!actionTakenOnCurrentPage && !isLastPage) {
-      setTasks(prev => dismissPageTasks(currentPageIndex, prev));
+      newTasks = dismissPageTasks(currentPageIndex, tasks);
+      setTasks(newTasks);
+      if (userId) {
+        const dismissed = newTasks.filter(t => t.pageIndex === currentPageIndex && t.status === 'dismissed');
+        syncTasksToFirestore(userId, dismissed);
+      }
     }
 
     let nextIndex = currentPageIndex;
@@ -187,7 +191,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isLastPage) {
       let foundActive = false;
       for (let i = 0; i <= maxPageIndex; i++) {
-        const hasActive = tasks.some(t => t.pageIndex === i && t.status === 'active');
+        const hasActive = newTasks.some(t => t.pageIndex === i && t.status === 'active');
         if (hasActive) {
           nextIndex = i;
           foundActive = true;
@@ -209,19 +213,26 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPageSizeState(newSize);
     const lastPage = maxPageIndex;
     const count = tasks.filter(t => t.pageIndex === lastPage).length;
+    let newClosedPages = [...closedPages];
+    let newPageCapacities = { ...pageCapacities };
     
     if (newSize < count) {
-      if (!closedPages.includes(lastPage)) {
-        setClosedPages(prev => [...prev, lastPage]);
+      if (!newClosedPages.includes(lastPage)) {
+        newClosedPages.push(lastPage);
+        setClosedPages(newClosedPages);
       }
     } else {
-      setPageCapacities(prev => ({ ...prev, [lastPage]: newSize }));
-      setClosedPages(prev => prev.filter(p => p !== lastPage));
+      newPageCapacities[lastPage] = newSize;
+      setPageCapacities(newPageCapacities);
+      newClosedPages = newClosedPages.filter(p => p !== lastPage);
+      setClosedPages(newClosedPages);
     }
+    syncSettings({ pageSize: newSize, pageCapacities: newPageCapacities, closedPages: newClosedPages });
   };
 
   const setFontSize = (size: number) => {
     setFontSizeState(size);
+    syncSettings({ fontSize: size });
   };
 
   const resetData = () => {
@@ -233,6 +244,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPageCapacities({});
     setClosedPages([]);
     setActionTakenOnCurrentPage(false);
+    
+    if (userId) {
+      tasks.forEach(t => deleteTaskFromFirestore(userId, t.id));
+      syncSettings({ pageSize: 5, fontSize: 18, pageCapacities: {}, closedPages: [] });
+    }
   };
 
   const exportData = () => {
@@ -260,33 +276,43 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     URL.revokeObjectURL(url);
   };
 
-  const importData = (jsonData: {
-    tasks?: Task[];
-    settings?: { pageSize?: number; fontSize?: number };
-    pageCapacities?: Record<number, number>;
-    closedPages?: number[];
-  }) => {
+  const importData = (jsonData: any) => {
     try {
       if (!jsonData || typeof jsonData !== 'object') throw new Error('Invalid JSON data');
 
+      let newTasks = tasks;
       if (jsonData.tasks && Array.isArray(jsonData.tasks)) {
-        setTasks(jsonData.tasks);
+        newTasks = jsonData.tasks;
+        setTasks(newTasks);
+        if (userId) syncTasksToFirestore(userId, newTasks);
       }
 
+      let newSettings: Partial<Settings> = {};
       if (jsonData.settings) {
-        if (jsonData.settings.pageSize) setPageSizeState(jsonData.settings.pageSize);
-        if (jsonData.settings.fontSize) setFontSize(jsonData.settings.fontSize);
+        if (jsonData.settings.pageSize) {
+          setPageSizeState(jsonData.settings.pageSize);
+          newSettings.pageSize = jsonData.settings.pageSize;
+        }
+        if (jsonData.settings.fontSize) {
+          setFontSizeState(jsonData.settings.fontSize);
+          newSettings.fontSize = jsonData.settings.fontSize;
+        }
       }
 
       if (jsonData.pageCapacities) {
         setPageCapacities(jsonData.pageCapacities);
+        newSettings.pageCapacities = jsonData.pageCapacities;
       }
 
       if (jsonData.closedPages) {
         setClosedPages(jsonData.closedPages);
+        newSettings.closedPages = jsonData.closedPages;
       }
 
-      // Reset to first active page or page 0
+      if (userId && Object.keys(newSettings).length > 0) {
+        syncSettings(newSettings);
+      }
+
       setCurrentPageIndex(0);
       setActionTakenOnCurrentPage(false);
       

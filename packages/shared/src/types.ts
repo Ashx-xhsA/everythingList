@@ -15,5 +15,7 @@ export interface Task {
 export interface Settings {
   pageSize: number;
   fontSize: number;
+  pageCapacities?: Record<number, number>;
+  closedPages?: number[];
   updatedAt?: number;
 }
