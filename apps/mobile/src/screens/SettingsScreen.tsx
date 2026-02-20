@@ -85,7 +85,7 @@ export const SettingsScreen = () => {
             const data = exportData();
             const jsonString = JSON.stringify(data, null, 2);
             
-            const file = new File(Paths.cache, 'autofocus-export.json');
+            const file = new File(Paths.cache, 'EverythingList-export.json');
             if (file.exists) {
                 file.delete();
             }
@@ -100,7 +100,7 @@ export const SettingsScreen = () => {
 
             await Sharing.shareAsync(file.uri, {
                 mimeType: 'application/json',
-                dialogTitle: 'Export Autofocus Data',
+                dialogTitle: 'Export EverythingList Data',
                 UTI: 'public.json',
             });
         } catch (e) {
