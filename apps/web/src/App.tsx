@@ -21,7 +21,7 @@ const MainApp = () => {
     <Router>
       <div className="app-container">
         <header className="app-main-header">
-          <h1>Autofocus</h1>
+          <h1>EverythingList</h1>
         </header>
         <main className="app-main-content">
           <Routes>

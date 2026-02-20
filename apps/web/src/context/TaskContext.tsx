@@ -307,7 +307,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const link = document.createElement('a');
     const date = new Date().toISOString().split('T')[0];
     link.href = url;
-    link.download = `autofocus-backup-${date}.json`;
+    link.download = `EverythingList-backup-${date}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
