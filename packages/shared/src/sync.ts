@@ -1,5 +1,5 @@
 import { collection, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, writeBatch } from 'firebase/firestore';
-import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { Task, Settings } from './types';
 
@@ -19,6 +19,20 @@ export const signInAnon = async (): Promise<User> => {
       }
     });
   });
+};
+
+export const registerWithEmail = async (email: string, pass: string) => {
+  const credential = await createUserWithEmailAndPassword(auth, email, pass);
+  return credential.user;
+};
+
+export const loginWithEmail = async (email: string, pass: string) => {
+  const credential = await signInWithEmailAndPassword(auth, email, pass);
+  return credential.user;
+};
+
+export const logout = async () => {
+  await signOut(auth);
 };
 
 export const onAuthChange = (callback: (user: User | null) => void) => {

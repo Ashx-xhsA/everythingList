@@ -3,7 +3,7 @@ import { useTasks } from '../context/TaskContext';
 import './SettingsScreen.css';
 
 export const SettingsScreen: React.FC = () => {
-  const { pageSize, setPageSize, fontSize, setFontSize, resetData, exportData, importData } = useTasks();
+  const { pageSize, setPageSize, fontSize, setFontSize, resetData, exportData, importData, logoutUser } = useTasks();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleReset = () => {
@@ -77,6 +77,12 @@ export const SettingsScreen: React.FC = () => {
 
         <div className="setting-item reset-section">
           <button className="reset-btn" onClick={handleReset}>Reset All Data</button>
+        </div>
+        
+        <div className="setting-item">
+          <button className="settings-btn" onClick={logoutUser} style={{ width: '100%', marginTop: '20px', backgroundColor: '#e0e0e0', color: 'black' }}>
+            Logout
+          </button>
         </div>
       </div>
     </div>

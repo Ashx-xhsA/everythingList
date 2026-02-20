@@ -14,7 +14,8 @@ export const SettingsScreen = () => {
         fontSize, 
         setFontSize, 
         resetData,
-        exportData 
+        exportData,
+        logoutUser
     } = useTasks();
 
     const [localPageSize, setLocalPageSize] = useState(pageSize.toString());
@@ -172,6 +173,12 @@ export const SettingsScreen = () => {
                     <Text style={styles.exportBtnText}>EXPORT DATA</Text>
                 </TouchableOpacity>
 
+                <View style={{ height: 15 }} />
+
+                <TouchableOpacity style={{...styles.exportBtn, borderColor: '#e0e0e0', backgroundColor: '#e0e0e0'}} onPress={logoutUser}>
+                    <Text style={[styles.exportBtnText, {color: '#000'}]}>LOGOUT</Text>
+                </TouchableOpacity>
+                
                 <View style={{ height: 15 }} />
 
                 <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>

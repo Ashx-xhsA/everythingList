@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import type { Task, Settings } from 'shared';
-import { completeTaskState, dismissPageTasks, getSuggestions, checkDismissedWarning, signInAnon, subscribeToTasks, syncTaskToFirestore, syncTasksToFirestore, deleteTaskFromFirestore, subscribeToSettings, syncSettingsToFirestore } from 'shared';
+import { completeTaskState, dismissPageTasks, getSuggestions, checkDismissedWarning, onAuthChange, loginWithEmail, registerWithEmail, logout, subscribeToTasks, syncTaskToFirestore, syncTasksToFirestore, deleteTaskFromFirestore, subscribeToSettings, syncSettingsToFirestore } from 'shared';
 
 const DEFAULT_PAGE_SIZE = 5;
 const DEFAULT_FONT_SIZE = 18;
@@ -32,12 +32,22 @@ interface TaskContextType {
   resetData: () => void;
   isPageFull: (pageIndex: number) => boolean;
   exportData: () => object;
+  
+  // Auth additions
+  isAuthenticated: boolean;
+  isAuthLoading: boolean;
+  loginUser: (email: string, pass: string) => Promise<void>;
+  registerUser: (email: string, pass: string) => Promise<void>;
+  logoutUser: () => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [pageSize, setPageSizeState] = useState(DEFAULT_PAGE_SIZE);
@@ -50,22 +60,35 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const maxPageIndex = tasks.length > 0 ? Math.max(...tasks.map(t => t.pageIndex)) : 0;
 
   useEffect(() => {
+    const unsubscribeAuth = onAuthChange((user) => {
+      if (user) {
+        setUserId(user.uid);
+        setIsAuthenticated(true);
+      } else {
+        setUserId(null);
+        setIsAuthenticated(false);
+        setTasks([]);
+      }
+      setIsAuthLoading(false);
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
     let unsubscribeTasks: () => void;
     let unsubscribeSettings: () => void;
 
-    signInAnon().then((user) => {
-      setUserId(user.uid);
-      
+    if (userId) {
       AsyncStorage.getItem('currentPageIndex').then(storedPageIndex => {
         if (storedPageIndex) setCurrentPageIndex(parseInt(storedPageIndex, 10));
       });
 
-      unsubscribeTasks = subscribeToTasks(user.uid, (fetchedTasks) => {
+      unsubscribeTasks = subscribeToTasks(userId, (fetchedTasks) => {
         setTasks(fetchedTasks);
         setIsLoading(false);
       });
 
-      unsubscribeSettings = subscribeToSettings(user.uid, (settings) => {
+      unsubscribeSettings = subscribeToSettings(userId, (settings) => {
         if (settings) {
           if (settings.pageSize) setPageSizeState(settings.pageSize);
           if (settings.fontSize) setFontSizeState(settings.fontSize);
@@ -73,20 +96,33 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (settings.closedPages) setClosedPages(settings.closedPages);
         }
       });
-    }).catch(err => {
-      console.error("Failed to sign in anonymously", err);
+    } else {
       setIsLoading(false);
-    });
+    }
 
     return () => {
       if (unsubscribeTasks) unsubscribeTasks();
       if (unsubscribeSettings) unsubscribeSettings();
     };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    AsyncStorage.setItem('currentPageIndex', currentPageIndex.toString());
-  }, [currentPageIndex]);
+    if (isAuthenticated) {
+      AsyncStorage.setItem('currentPageIndex', currentPageIndex.toString());
+    }
+  }, [currentPageIndex, isAuthenticated]);
+
+  const loginUser = async (email: string, pass: string) => {
+    await loginWithEmail(email, pass);
+  };
+
+  const registerUser = async (email: string, pass: string) => {
+    await registerWithEmail(email, pass);
+  };
+
+  const logoutUser = async () => {
+    await logout();
+  };
 
   const syncSettings = (updates: Partial<Settings>) => {
     if (!userId) return;
@@ -290,7 +326,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstActivePageIndex: (() => {
               for (let i = 0; i <= maxPageIndex; i++) {
                   if (tasks.some(t => t.pageIndex === i && t.status === 'active')) {
-                      return i;
+                       return i;
                   }
               }
               return 0; 
@@ -300,7 +336,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setFontSize,
           resetData,
           isPageFull,
-          exportData
+          exportData,
+          isAuthenticated, isAuthLoading, loginUser, registerUser, logoutUser
       }}>
           {children}
       </TaskContext.Provider>
