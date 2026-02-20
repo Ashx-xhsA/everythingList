@@ -1,0 +1,152 @@
+/* HomeScreen layout */
+.home-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width) solid var(--border-color);
+  padding: 20px;
+  background: #fff; /* Notebook page */
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: var(--border-width) solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.fire-btn {
+  color: red;
+  border-color: red;
+  font-weight: bold;
+}
+
+.task-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.empty-msg {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Task Item */
+.task-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px dashed #ccc;
+  cursor: pointer;
+}
+
+.task-item.active {
+  color: #000;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.task-item.dismissed {
+  color: #888;
+  font-style: italic;
+  background: #f9f9f9;
+}
+
+.task-header {
+  display: flex;
+  align-items: flex-start;
+}
+
+.checkbox {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0;
+  margin-right: 15px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.checkbox:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.task-text {
+  flex: 1;
+  font-size: var(--font-content-size);
+  word-break: break-word;
+}
+
+.task-details {
+  white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.edit-task-btn {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  opacity: 0.7;
+}
+
+.edit-task-btn:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.05);
+}
+
+/* Input area */
+.input-area {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.add-details-btn {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  padding: 0;
+}
+
+/* Pagination */
+.pagination-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: var(--border-width) solid var(--border-color);
+  padding-top: 20px;
+}
+
+.pagination-nav button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination-nav button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

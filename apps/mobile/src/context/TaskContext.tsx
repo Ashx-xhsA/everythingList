@@ -30,6 +30,7 @@ interface TaskContextType {
   setFontSize: (size: number) => void;
   resetData: () => void;
   isPageFull: (pageIndex: number) => boolean;
+  exportData: () => object;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -343,6 +344,20 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const exportData = () => {
+        return {
+            exportedAt: new Date().toISOString(),
+            version: 1,
+            settings: {
+                pageSize,
+                fontSize,
+            },
+            pageCapacities,
+            closedPages,
+            tasks,
+        };
+    };
+
     return (
         <TaskContext.Provider value={{
             tasks,
@@ -374,7 +389,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setPageSize,
             setFontSize: setFontSizeAction,
             resetData,
-            isPageFull
+            isPageFull,
+            exportData
         }}>
             {children}
         </TaskContext.Provider>

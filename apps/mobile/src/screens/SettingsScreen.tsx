@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { useTasks } from '../context/TaskContext';
 import { theme } from '../theme';
 
@@ -11,7 +13,8 @@ export const SettingsScreen = () => {
         setPageSize, 
         fontSize, 
         setFontSize, 
-        resetData 
+        resetData,
+        exportData 
     } = useTasks();
 
     const [localPageSize, setLocalPageSize] = useState(pageSize.toString());
@@ -76,6 +79,35 @@ export const SettingsScreen = () => {
         );
     };
 
+    const handleExport = async () => {
+        try {
+            const data = exportData();
+            const jsonString = JSON.stringify(data, null, 2);
+            
+            const file = new File(Paths.cache, 'autofocus-export.json');
+            if (file.exists) {
+                file.delete();
+            }
+            file.create();
+            file.write(jsonString);
+
+            const isSharingAvailable = await Sharing.isAvailableAsync();
+            if (!isSharingAvailable) {
+                Alert.alert("Sharing not available", "Sharing is not supported on this device.");
+                return;
+            }
+
+            await Sharing.shareAsync(file.uri, {
+                mimeType: 'application/json',
+                dialogTitle: 'Export Autofocus Data',
+                UTI: 'public.json',
+            });
+        } catch (e) {
+            console.error("Export failed:", e);
+            Alert.alert("Export Failed", "Something went wrong while exporting your data.");
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             {/* No Top Header */}
@@ -135,6 +167,12 @@ export const SettingsScreen = () => {
                 </View>
 
                 <View style={styles.divider} />
+
+                <TouchableOpacity style={styles.exportBtn} onPress={handleExport}>
+                    <Text style={styles.exportBtnText}>EXPORT DATA</Text>
+                </TouchableOpacity>
+
+                <View style={{ height: 15 }} />
 
                 <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
                     <Text style={styles.resetBtnText}>RESET ALL DATA</Text>
@@ -204,6 +242,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     resetBtnText: { color: '#ff3b30', fontSize: 16, fontFamily: theme.fonts.main, fontWeight: 'bold' },
+
+    exportBtn: {
+        borderWidth: 2,
+        borderColor: theme.colors.border,
+        padding: 15,
+        alignItems: 'center',
+    },
+    exportBtnText: { fontSize: 16, fontFamily: theme.fonts.main, fontWeight: 'bold' },
 
     // Bottom Nav Styles (Copied/Adapted from HomeScreen)
     bottomSection: {

@@ -1,0 +1,62 @@
+.log-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: var(--border-width) solid var(--border-color);
+  padding: 20px;
+  background: #fff;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filters select {
+  padding: 5px;
+  font-family: var(--font-ui);
+  border: var(--border-width) solid var(--border-color);
+  background: transparent;
+}
+
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.timeline-item {
+  margin-bottom: 20px;
+}
+
+.timeline-date {
+  font-family: var(--font-ui);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #555;
+  border-bottom: 1px dotted #ccc;
+  display: inline-block;
+}
+
+.timeline-content {
+  font-size: var(--font-content-size);
+}
+
+.timeline-content.dismissed {
+  color: #888;
+  font-style: italic;
+}
+
+.dismissed-badge {
+  font-size: 0.8rem;
+  margin-left: 10px;
+}
+
+.timeline-details {
+  font-size: calc(var(--font-content-size) * 0.85);
+  color: #666;
+  margin-top: 5px;
+  padding-left: 10px;
+  border-left: 2px solid #ddd;
+}

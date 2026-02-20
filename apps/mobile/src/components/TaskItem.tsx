@@ -45,7 +45,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onComplete, onEdit }) 
                 {task.text}
             </Text>
             {isExpanded && task.details ? (
-                <Text style={styles.detailsText}>{task.details}</Text>
+                <Text style={styles.detailsText} numberOfLines={3}>{task.details}</Text>
             ) : null}
         </View>
     </TouchableOpacity>
@@ -55,7 +55,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onComplete, onEdit }) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 6,
     marginBottom: 2,
   },
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 4,
+    marginTop: 2,
   },
   checkBox: {
       width: 20,
