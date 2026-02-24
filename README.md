@@ -1,3 +1,6 @@
+# Update
+It also has web application now:
+https://everythinglist123.netlify.app/
 # everythingList
 
 A gesture-driven task manager for iOS built on Mark Forster's Autofocus productivity method.
