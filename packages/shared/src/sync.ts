@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, writeBatch, query, orderBy } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, auth } from './firebase';
 import { Task, Settings } from './types';
@@ -41,7 +41,8 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
 
 export const subscribeToTasks = (userId: string, callback: (tasks: Task[]) => void) => {
   const collectionRef = collection(db, `users/${userId}/tasks`);
-  return onSnapshot(collectionRef, (snapshot) => {
+  const q = query(collectionRef, orderBy('createdAt', 'asc'));
+  return onSnapshot(q, (snapshot) => {
     const tasks: Task[] = [];
     snapshot.forEach((doc) => {
       tasks.push({ id: doc.id, ...doc.data() } as Task);
