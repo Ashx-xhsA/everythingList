@@ -10,7 +10,7 @@ export const HomeScreen: React.FC = () => {
   const { 
     tasks, currentPageIndex, maxPageIndex, 
     nextPage, goToPage, addTask, isLoading,
-    firePage, isPageFull
+    firePage, resetPage, isPageFull
   } = useTasks();
 
   const [newTaskText, setNewTaskText] = useState('');
@@ -48,11 +48,19 @@ export const HomeScreen: React.FC = () => {
 
   const currentTasks = tasks.filter(t => t.pageIndex === currentPageIndex);
   const activeTasksCount = currentTasks.filter(t => t.status === 'active').length;
+  const dismissedTasksCount = currentTasks.filter(t => t.status === 'dismissed').length;
   const showFireButton = activeTasksCount > 0 && isPageFull(currentPageIndex);
+  const showResetButton = activeTasksCount === 0 && dismissedTasksCount > 0;
 
   const handleFire = () => {
     if (window.confirm('Dismiss all tasks on this page?')) {
       firePage(currentPageIndex);
+    }
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Restore all dismissed tasks on this page?')) {
+      resetPage(currentPageIndex);
     }
   };
 
@@ -62,6 +70,9 @@ export const HomeScreen: React.FC = () => {
         <h2>PAGE {currentPageIndex + 1}</h2>
         {showFireButton && (
           <button className="fire-btn" onClick={handleFire} title="Dismiss remaining tasks">✕</button>
+        )}
+        {showResetButton && (
+          <button className="fire-btn" onClick={handleReset} style={{ fontSize: '1.2em' }} title="Restore dismissed tasks">↺</button>
         )}
       </header>
 

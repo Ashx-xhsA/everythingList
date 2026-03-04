@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Task, Settings } from 'shared';
-import { completeTaskState, dismissPageTasks, getSuggestions, checkDismissedWarning, onAuthChange, loginWithEmail, registerWithEmail, logout, subscribeToTasks, syncTaskToFirestore, syncTasksToFirestore, deleteTaskFromFirestore, subscribeToSettings, syncSettingsToFirestore } from 'shared';
+import { completeTaskState, dismissPageTasks, resetPageTasks, getSuggestions, checkDismissedWarning, onAuthChange, loginWithEmail, registerWithEmail, logout, subscribeToTasks, syncTaskToFirestore, syncTasksToFirestore, deleteTaskFromFirestore, subscribeToSettings, syncSettingsToFirestore } from 'shared';
 
 const DEFAULT_PAGE_SIZE = 5;
 const DEFAULT_FONT_SIZE = 18;
@@ -17,6 +17,7 @@ interface TaskContextType {
   nextPage: () => void;
   goToPage: (index: number) => void;
   firePage: (pageIndex: number) => void;
+  resetPage: (pageIndex: number) => void;
   getSuggestions: (text: string) => string[];
   checkDismissedWarning: (text: string) => boolean;
   actionTakenOnCurrentPage: boolean;
@@ -211,6 +212,15 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resetPage = (pageIndex: number) => {
+    const newTasks = resetPageTasks(pageIndex, tasks);
+    setTasks(newTasks);
+    if (userId) {
+      const reactivated = newTasks.filter(t => t.pageIndex === pageIndex && t.status === 'active');
+      syncTasksToFirestore(userId, reactivated);
+    }
+  };
+
   const markActionTaken = () => setActionTakenOnCurrentPage(true);
 
   const nextPage = () => {
@@ -372,7 +382,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentPageIndex(index);
         setActionTakenOnCurrentPage(false);
       }, 
-      firePage,
+      firePage, resetPage,
       getSuggestions: (text) => getSuggestions(text, tasks),
       checkDismissedWarning: (text) => checkDismissedWarning(text, tasks),
       actionTakenOnCurrentPage, markActionTaken,

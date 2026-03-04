@@ -29,6 +29,14 @@ export const dismissPageTasks = (pageIndex: number, tasks: Task[]): Task[] => {
   );
 };
 
+export const resetPageTasks = (pageIndex: number, tasks: Task[]): Task[] => {
+  return tasks.map(t => 
+    (t.pageIndex === pageIndex && t.status === 'dismissed')
+      ? { ...t, status: 'active' as TaskStatus, updatedAt: Date.now() }
+      : t
+  );
+};
+
 export const completeTaskState = (id: string, tasks: Task[]): Task[] => {
   return tasks.map(t => 
     t.id === id ? { ...t, status: 'completed' as TaskStatus, completedAt: Date.now(), updatedAt: Date.now() } : t

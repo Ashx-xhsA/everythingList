@@ -17,6 +17,7 @@ export const HomeScreen = () => {
         addTask,
         completeTask, 
         firePage,
+        resetPage,
         nextPage,
         goToPage,
         firstActivePageIndex,
@@ -71,6 +72,21 @@ export const HomeScreen = () => {
         );
     };
 
+    const handleReset = () => {
+        Alert.alert(
+            "Restore Page?",
+            "Restore all dismissed tasks on this page to active status?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "RESTORE", 
+                    style: "default", 
+                    onPress: () => resetPage(currentPageIndex) 
+                }
+            ]
+        );
+    };
+
     const renderPage = (pageIndex: number) => {
         const pageTasks = tasks.filter(t => t.pageIndex === pageIndex);
         
@@ -88,21 +104,31 @@ export const HomeScreen = () => {
         });
 
         const hasActive = sortedTasks.some(t => t.status === 'active');
+        const hasDismissed = sortedTasks.some(t => t.status === 'dismissed');
         const isFull = isPageFull(pageIndex);
+        
+        const showFire = isFull && hasActive;
+        const showReset = !hasActive && hasDismissed;
         
         return (
             <ScrollView key={pageIndex} style={styles.pageContainer} contentContainerStyle={styles.pageContent}>
                 <View style={styles.pageHeader}>
                     <Text style={styles.pageTitle}>PAGE {pageIndex + 1}</Text>
-                    {/* Always render container, control visibility with opacity to prevent layout shift */}
-                    <View style={{ opacity: (isFull && hasActive) ? 1 : 0 }}>
-                        <TouchableOpacity 
-                            onPress={handleFire} 
-                            style={styles.fireButton}
-                            disabled={!(isFull && hasActive)} // Disable touch when hidden
-                        >
-                            <Text style={styles.fireButtonText}>✕</Text>
-                        </TouchableOpacity>
+                    {/* Control visibility with opacity to prevent layout shift */}
+                    <View style={{ opacity: (showFire || showReset) ? 1 : 0 }}>
+                        {showFire ? (
+                            <TouchableOpacity onPress={handleFire} style={styles.fireButton}>
+                                <Text style={styles.fireButtonText}>✕</Text>
+                            </TouchableOpacity>
+                        ) : showReset ? (
+                            <TouchableOpacity onPress={handleReset} style={styles.fireButton}>
+                                <Text style={[styles.fireButtonText, { fontSize: 26 }]}>↺</Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.fireButton}>
+                                <Text style={[styles.fireButtonText, { color: 'transparent' }]}>✕</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
                 
