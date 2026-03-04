@@ -32,6 +32,12 @@
   color: black;
   border-color: black;
   font-weight: bold;
+  width: 43px;
+  height: 43px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .task-list {

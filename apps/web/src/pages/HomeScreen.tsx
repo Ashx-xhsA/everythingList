@@ -78,7 +78,7 @@ export const HomeScreen: React.FC = () => {
           </button>
         )}
         {showResetButton && (
-          <button className="page-restore-btn" onClick={handleReset} style={{ fontSize: '1.2em' }} title="Restore dismissed tasks">↺</button>
+          <button className="page-restore-btn" onClick={handleReset} style={{ fontSize: '2rem' }} title="Restore dismissed tasks">↺</button>
         )}
       </header>
 

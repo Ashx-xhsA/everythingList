@@ -128,8 +128,8 @@ export const HomeScreen = () => {
                                 <SquareXIcon color={theme.colors.text} size={44} />
                             </TouchableOpacity>
                         ) : showReset ? (
-                            <TouchableOpacity onPress={handleReset} style={styles.fireButton}>
-                                <Text style={[styles.fireButtonText, { fontSize: 26 }]}>↺</Text>
+                            <TouchableOpacity onPress={handleReset} style={[styles.fireButton, { width: 44, height: 44, padding: 0, justifyContent: 'center', alignItems: 'center' }]}>
+                                <Text style={[styles.fireButtonText, { fontSize: 36, lineHeight: 40 }]}>↺</Text>
                             </TouchableOpacity>
                         ) : (
                             <View>
