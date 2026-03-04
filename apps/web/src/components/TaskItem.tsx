@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const TaskItem: React.FC<Props> = ({ task, onEdit }) => {
-  const { completeTask } = useTasks();
+  const { completeTask, addTask } = useTasks();
   const [expanded, setExpanded] = useState(false);
 
   const isCompleted = task.status === 'completed';
@@ -35,9 +35,23 @@ export const TaskItem: React.FC<Props> = ({ task, onEdit }) => {
       {expanded && (
         <div className="task-details">
           {task.details && <p>{task.details}</p>}
-          <button className="edit-task-btn" onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
-            EDIT DETAILS
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="edit-task-btn" onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
+              EDIT DETAILS
+            </button>
+            {task.status === 'active' && (
+              <button 
+                className="edit-task-btn" 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  completeTask(task.id); 
+                  addTask(task.text, task.details); 
+                }}
+              >
+                COMPLETE & COPY
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

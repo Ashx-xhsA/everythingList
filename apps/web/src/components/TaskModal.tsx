@@ -25,16 +25,6 @@ export const TaskModal: React.FC<Props> = ({ task, onClose, isNew }) => {
     }
   }, [text, mode, getSuggestions]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleSaveAndClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  });
-
   const handleSaveAndClose = () => {
     if (text.trim() === '') {
       if (task.text === '' && !isNew) {
@@ -49,6 +39,16 @@ export const TaskModal: React.FC<Props> = ({ task, onClose, isNew }) => {
     }
     onClose();
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleSaveAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
 
   const handleDone = () => {
     if (text.trim() === '') return;
