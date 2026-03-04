@@ -125,7 +125,7 @@ export const HomeScreen = () => {
                     <View style={{ opacity: (showFire || showReset) ? 1 : 0 }}>
                         {showFire ? (
                             <TouchableOpacity onPress={handleFire} style={styles.fireButton}>
-                                <SquareXIcon color={theme.colors.fire} size={26} />
+                                <SquareXIcon color={theme.colors.text} size={22} />
                             </TouchableOpacity>
                         ) : showReset ? (
                             <TouchableOpacity onPress={handleReset} style={styles.fireButton}>
@@ -133,7 +133,7 @@ export const HomeScreen = () => {
                             </TouchableOpacity>
                         ) : (
                             <View style={styles.fireButton}>
-                                <SquareXIcon color={'transparent'} size={26} />
+                                <SquareXIcon color={'transparent'} size={22} />
                             </View>
                         )}
                     </View>

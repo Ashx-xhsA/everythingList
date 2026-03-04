@@ -18,9 +18,11 @@
 }
 
 .fire-btn {
-  color: #820112;
-  border-color: black;
-  font-weight: bold;
+  color: black;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
 
 .page-restore-btn {
