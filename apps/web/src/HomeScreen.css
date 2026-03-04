@@ -25,7 +25,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px; /* Matches line-height of adjacent text buttons */
   cursor: pointer;
 }
 

@@ -122,18 +122,18 @@ export const HomeScreen = () => {
                 <View style={styles.pageHeader}>
                     <Text style={styles.pageTitle}>PAGE {pageIndex + 1}</Text>
                     {/* Control visibility with opacity to prevent layout shift */}
-                    <View style={{ opacity: (showFire || showReset) ? 1 : 0 }}>
+                    <View style={{ opacity: (showFire || showReset) ? 1 : 0, minHeight: 44 }}>
                         {showFire ? (
-                            <TouchableOpacity onPress={handleFire} style={styles.fireButton}>
-                                <SquareXIcon color={theme.colors.text} size={22} />
+                            <TouchableOpacity onPress={handleFire}>
+                                <SquareXIcon color={theme.colors.text} size={44} />
                             </TouchableOpacity>
                         ) : showReset ? (
                             <TouchableOpacity onPress={handleReset} style={styles.fireButton}>
                                 <Text style={[styles.fireButtonText, { fontSize: 26 }]}>↺</Text>
                             </TouchableOpacity>
                         ) : (
-                            <View style={styles.fireButton}>
-                                <SquareXIcon color={'transparent'} size={22} />
+                            <View>
+                                <SquareXIcon color={'transparent'} size={44} />
                             </View>
                         )}
                     </View>
