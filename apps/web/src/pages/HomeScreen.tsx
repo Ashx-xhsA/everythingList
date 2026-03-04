@@ -72,7 +72,7 @@ export const HomeScreen: React.FC = () => {
           <button className="fire-btn" onClick={handleFire} title="Dismiss remaining tasks">✕</button>
         )}
         {showResetButton && (
-          <button className="fire-btn" onClick={handleReset} style={{ fontSize: '1.2em' }} title="Restore dismissed tasks">↺</button>
+          <button className="reset-btn" onClick={handleReset} style={{ fontSize: '1.2em' }} title="Restore dismissed tasks">↺</button>
         )}
       </header>
 

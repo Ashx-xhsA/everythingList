@@ -227,15 +227,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isLastPage = currentPageIndex === maxPageIndex;
     
     let newTasks = tasks;
-    if (!actionTakenOnCurrentPage && !isLastPage) {
-      newTasks = dismissPageTasks(currentPageIndex, tasks);
-      setTasks(newTasks);
-      if (userId) {
-        const dismissed = newTasks.filter(t => t.pageIndex === currentPageIndex && t.status === 'dismissed');
-        syncTasksToFirestore(userId, dismissed);
-      }
-    }
-
     let nextIndex = currentPageIndex;
     
     if (isLastPage) {

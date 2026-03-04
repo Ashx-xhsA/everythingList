@@ -6,7 +6,7 @@ export const theme = {
     border: '#222222',
     button: '#e0e0e0', // Grey button fill
     buttonActive: '#cccccc',
-    fire: '#FF4500', // Still keep fire red? Or retro orange?
+    fire: '#820112',
     warning: '#ffdddd'
   },
   borders: {
