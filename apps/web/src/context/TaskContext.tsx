@@ -47,12 +47,30 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [pageSize, setPageSizeState] = useState(DEFAULT_PAGE_SIZE);
-  const [fontSize, setFontSizeState] = useState(DEFAULT_FONT_SIZE);
-  const [pageCapacities, setPageCapacities] = useState<Record<number, number>>({});
-  const [closedPages, setClosedPages] = useState<number[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem('autofocus_tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [currentPageIndex, setCurrentPageIndex] = useState(() => {
+    const saved = localStorage.getItem('currentPageIndex');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [pageSize, setPageSizeState] = useState(() => {
+    const saved = localStorage.getItem('autofocus_pageSize');
+    return saved ? parseInt(saved, 10) : DEFAULT_PAGE_SIZE;
+  });
+  const [fontSize, setFontSizeState] = useState(() => {
+    const saved = localStorage.getItem('autofocus_fontSize');
+    return saved ? parseInt(saved, 10) : DEFAULT_FONT_SIZE;
+  });
+  const [pageCapacities, setPageCapacities] = useState<Record<number, number>>(() => {
+    const saved = localStorage.getItem('autofocus_pageCapacities');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [closedPages, setClosedPages] = useState<number[]>(() => {
+    const saved = localStorage.getItem('autofocus_closedPages');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [actionTakenOnCurrentPage, setActionTakenOnCurrentPage] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -67,7 +85,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setUserId(null);
         setIsAuthenticated(false);
-        setTasks([]); // Clear local tasks on logout
+        // Do NOT clear tasks here, otherwise offline initial load is wiped!
+        // Tasks are cleared inside resetData/logoutUser explicitly.
       }
       setIsAuthLoading(false);
     });
@@ -80,9 +99,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeSettings: () => void;
 
     if (userId) {
-      const storedPageIndex = localStorage.getItem('currentPageIndex');
-      if (storedPageIndex) setCurrentPageIndex(parseInt(storedPageIndex, 10));
-
       unsubscribeTasks = subscribeToTasks(userId, (fetchedTasks) => {
         setTasks(fetchedTasks);
         setIsLoading(false);
@@ -111,10 +127,17 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fontSize]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isAuthenticated) {
+      localStorage.setItem('currentPageIndex', currentPageIndex.toString());
+      localStorage.setItem('autofocus_tasks', JSON.stringify(tasks));
+      localStorage.setItem('autofocus_pageSize', pageSize.toString());
+      localStorage.setItem('autofocus_fontSize', fontSize.toString());
+      localStorage.setItem('autofocus_pageCapacities', JSON.stringify(pageCapacities));
+      localStorage.setItem('autofocus_closedPages', JSON.stringify(closedPages));
+    } else {
       localStorage.setItem('currentPageIndex', currentPageIndex.toString());
     }
-  }, [currentPageIndex, isAuthenticated]);
+  }, [currentPageIndex, tasks, pageSize, fontSize, pageCapacities, closedPages, isAuthenticated]);
 
   const loginUser = async (email: string, pass: string) => {
     await loginWithEmail(email, pass);
@@ -125,6 +148,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logoutUser = async () => {
+    setTasks([]);
+    localStorage.clear();
     await logout();
   };
 
@@ -158,7 +183,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTask: Task = {
       id: uuidv4(),
       text,
-      details,
+      details: details || '',
       status: 'active',
       pageIndex: targetPageIndex,
       createdAt: Date.now(),

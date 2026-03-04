@@ -61,6 +61,25 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const maxPageIndex = tasks.length > 0 ? Math.max(...tasks.map(t => t.pageIndex)) : 0;
 
   useEffect(() => {
+    const loadLocalData = async () => {
+        try {
+            const storedTasks = await AsyncStorage.getItem('autofocus_tasks');
+            if (storedTasks) setTasks(JSON.parse(storedTasks));
+            
+            const storedPageSize = await AsyncStorage.getItem('autofocus_pageSize');
+            if (storedPageSize) setPageSizeState(parseInt(storedPageSize, 10));
+            
+            const storedFontSize = await AsyncStorage.getItem('autofocus_fontSize');
+            if (storedFontSize) setFontSizeState(parseInt(storedFontSize, 10));
+            
+            const storedCapacities = await AsyncStorage.getItem('autofocus_pageCapacities');
+            if (storedCapacities) setPageCapacities(JSON.parse(storedCapacities));
+            
+            const storedClosed = await AsyncStorage.getItem('autofocus_closedPages');
+            if (storedClosed) setClosedPages(JSON.parse(storedClosed));
+        } catch(e) { console.error('Failed to load offline data', e); }
+    };
+
     const unsubscribeAuth = onAuthChange((user) => {
       if (user) {
         setUserId(user.uid);
@@ -68,7 +87,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setUserId(null);
         setIsAuthenticated(false);
-        setTasks([]);
+        loadLocalData(); // Load offline config on startup instead of clearing tasks
       }
       setIsAuthLoading(false);
     });
@@ -80,10 +99,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeSettings: () => void;
 
     if (userId) {
-      AsyncStorage.getItem('currentPageIndex').then(storedPageIndex => {
-        if (storedPageIndex) setCurrentPageIndex(parseInt(storedPageIndex, 10));
-      });
-
       unsubscribeTasks = subscribeToTasks(userId, (fetchedTasks) => {
         setTasks(fetchedTasks);
         setIsLoading(false);
@@ -108,10 +123,17 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [userId]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isAuthenticated && !isAuthLoading) {
+      AsyncStorage.setItem('currentPageIndex', currentPageIndex.toString());
+      AsyncStorage.setItem('autofocus_tasks', JSON.stringify(tasks));
+      AsyncStorage.setItem('autofocus_pageSize', pageSize.toString());
+      AsyncStorage.setItem('autofocus_fontSize', fontSize.toString());
+      AsyncStorage.setItem('autofocus_pageCapacities', JSON.stringify(pageCapacities));
+      AsyncStorage.setItem('autofocus_closedPages', JSON.stringify(closedPages));
+    } else if (isAuthenticated && !isAuthLoading) {
       AsyncStorage.setItem('currentPageIndex', currentPageIndex.toString());
     }
-  }, [currentPageIndex, isAuthenticated]);
+  }, [currentPageIndex, tasks, pageSize, fontSize, pageCapacities, closedPages, isAuthenticated, isAuthLoading]);
 
   const loginUser = async (email: string, pass: string) => {
     await loginWithEmail(email, pass);
@@ -122,6 +144,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logoutUser = async () => {
+    setTasks([]);
+    await AsyncStorage.clear();
     await logout();
   };
 
@@ -155,7 +179,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTask: Task = {
       id: uuidv4(),
       text,
-      details,
+      details: details || '',
       status: 'active',
       pageIndex: targetPageIndex,
       createdAt: Date.now(),
