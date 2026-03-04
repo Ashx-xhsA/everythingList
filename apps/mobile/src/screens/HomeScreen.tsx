@@ -9,6 +9,13 @@ import { TaskModal } from '../components/TaskModal';
 import { Task } from '../types';
 import { theme } from '../theme';
 
+const SquareXIcon = ({ color, size }: { color: string, size: number }) => (
+    <View style={{ width: size, height: size, borderWidth: 2, borderColor: color, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+        <View style={{ position: 'absolute', width: size * 1.5, height: 2, backgroundColor: color, transform: [{ rotate: '45deg' }] }} />
+        <View style={{ position: 'absolute', width: size * 1.5, height: 2, backgroundColor: color, transform: [{ rotate: '-45deg' }] }} />
+    </View>
+);
+
 export const HomeScreen = () => {
     const { 
         tasks, 
@@ -118,7 +125,7 @@ export const HomeScreen = () => {
                     <View style={{ opacity: (showFire || showReset) ? 1 : 0 }}>
                         {showFire ? (
                             <TouchableOpacity onPress={handleFire} style={styles.fireButton}>
-                                <Text style={styles.fireButtonText}>✕</Text>
+                                <SquareXIcon color={theme.colors.fire} size={26} />
                             </TouchableOpacity>
                         ) : showReset ? (
                             <TouchableOpacity onPress={handleReset} style={styles.fireButton}>
@@ -126,7 +133,7 @@ export const HomeScreen = () => {
                             </TouchableOpacity>
                         ) : (
                             <View style={styles.fireButton}>
-                                <Text style={[styles.fireButtonText, { color: 'transparent' }]}>✕</Text>
+                                <SquareXIcon color={'transparent'} size={26} />
                             </View>
                         )}
                     </View>
