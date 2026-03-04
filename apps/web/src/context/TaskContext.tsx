@@ -175,8 +175,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (targetPageIndex !== currentPageIndex) {
       setCurrentPageIndex(targetPageIndex);
+      setActionTakenOnCurrentPage(false);
     } else if (tasks.length === 0) {
       setCurrentPageIndex(0);
+      setActionTakenOnCurrentPage(false);
     }
   };
 
@@ -365,7 +367,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <TaskContext.Provider value={{
       tasks, currentPageIndex, maxPageIndex,
       addTask, updateTask, completeTask, deleteTask,
-      nextPage, goToPage: setCurrentPageIndex, firePage,
+      nextPage, 
+      goToPage: (index: number) => {
+        setCurrentPageIndex(index);
+        setActionTakenOnCurrentPage(false);
+      }, 
+      firePage,
       getSuggestions: (text) => getSuggestions(text, tasks),
       checkDismissedWarning: (text) => checkDismissedWarning(text, tasks),
       actionTakenOnCurrentPage, markActionTaken,
