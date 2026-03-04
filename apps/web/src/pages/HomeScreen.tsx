@@ -70,10 +70,10 @@ export const HomeScreen: React.FC = () => {
         <h2>PAGE {currentPageIndex + 1}</h2>
         {showFireButton && (
           <button className="fire-btn" onClick={handleFire} title="Dismiss remaining tasks">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" style={{ display: 'block' }}>
-              <rect x="2" y="2" width="20" height="20" />
-              <line x1="2" y1="2" x2="22" y2="22" />
-              <line x1="22" y1="2" x2="2" y2="22" />
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square">
+              <rect x="1" y="1" width="18" height="18" />
+              <line x1="1" y1="1" x2="19" y2="19" />
+              <line x1="19" y1="1" x2="1" y2="19" />
             </svg>
           </button>
         )}
